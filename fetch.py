@@ -1,6 +1,6 @@
 import sys
 from functools import partial
-from typing import TextIO, Optional
+from typing import Any, Optional, TextIO
 from multiprocessing import cpu_count
 from multiprocessing.pool import ThreadPool as Pool
 
@@ -10,6 +10,9 @@ from pandas import Series, read_csv
 OUTPUT_COLUMNS = [
     "date",
     "station",
+    "latitude",
+    "longitude",
+    "elevation",
     "minimum_temperature",
     "maximum_temperature",
     "rainfall",
@@ -17,11 +20,19 @@ OUTPUT_COLUMNS = [
 ]
 
 
-def fix_temp(value: Optional[int]) -> Optional[int]:
+def int_cast(value: Optional[Any]) -> Optional[int]:
     try:
         value = int(value)
-        return "{0:.1f}".format(value / 10.0)
+        return value
     except:
+        return None
+
+
+def fix_temp(value: Optional[Any]) -> Optional[int]:
+    value = int_cast(value)
+    if value is not None:
+        return "{0:.1f}".format(value / 10.0)
+    else:
         return None
 
 
@@ -35,6 +46,9 @@ def process_station(fd: TextIO, record: Series) -> None:
     column_mapping = {
         "DATE": "date",
         "STATION": "station",
+        "LATITUDE": "latitude",
+        "LONGITUDE": "longitude",
+        "ELEVATION": "elevation",
         "TMIN": "minimum_temperature",
         "TMAX": "maximum_temperature",
         "PRCP": "rainfall",
@@ -47,15 +61,20 @@ def process_station(fd: TextIO, record: Series) -> None:
     data["minimum_temperature"] = data["minimum_temperature"].apply(fix_temp)
     data["maximum_temperature"] = data["maximum_temperature"].apply(fix_temp)
 
-    # Get only data for 2020
-    data = data[data.date > "2009-12-31"]
+    # Properly format coordinates and elevation
+    data["latitude"] = data["latitude"].apply(lambda x: "{0:.06g}".format(x))
+    data["longitude"] = data["longitude"].apply(lambda x: "{0:.06g}".format(x))
+    data["elevation"] = data["elevation"].apply(int_cast).astype("Int64")
+
+    # Get only data starting on 2015
+    data = data[data.date > "2014-12-31"]
 
     # Make sure that all columns are in the record, even if null
     for column in filter(lambda x: x not in data.columns, OUTPUT_COLUMNS):
         data[column] = None
 
     # Put the output columns in the appropriate order and get rid of empty records
-    data = data[OUTPUT_COLUMNS].dropna(subset=OUTPUT_COLUMNS[2:], how="all")
+    data = data[OUTPUT_COLUMNS].dropna(subset=OUTPUT_COLUMNS[-4:], how="all")
 
     # Write the processed station data
     data.sort_values("date").to_csv(fd, header=False, index=False)
@@ -95,7 +114,9 @@ if __name__ == "__main__":
     map_iter = (record for _, record in stations.iterrows())
 
     # Bottleneck is network so we can use lots of threads in parallel
-    records = list(tqdm(Pool(cpu_count()).imap_unordered(map_func, map_iter), total=len(stations),))
+    records = list(
+        tqdm(Pool(cpu_count() * 4).imap_unordered(map_func, map_iter), total=len(stations),)
+    )
 
     # Close the output file
     fd.close()

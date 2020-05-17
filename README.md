@@ -12,6 +12,9 @@ daily. It contains the following columns:
 | ---- | ---- | ----------- | ------- |
 | **date** | `string` | ISO 8601 date (YYYY-MM-DD) of the datapoint | 2020-03-30 |
 | **station** | `string` | Identifier for the weather station | USC00206080 |
+| **latitude** | `double` | Floating point representing the geographic coordinate | 30.9756 |
+| **longitude** | `double` | Floating point representing the geographic coordinate | 112.2707 |
+| **elevation** | `integer` [meters] | Elevation above the sea level | 875 |
 | **minimum_temperature** | `double` [celsius] | Recorded hourly minimum temperature | 1.7 |
 | **maximum_temperature** | `double` [celsius] | Recorded hourly maximum temperature | 19.4 |
 | **rainfall** | `double` [millimeters] | Rainfall during the entire day | 51.0 |
