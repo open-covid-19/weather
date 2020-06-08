@@ -22,7 +22,8 @@ def process_ghcn(output_folder: Path, station: Series) -> None:
         if res.status_code != 200:
             raise RuntimeError(f"Unexpected status code {res.status_code}")
 
-        output = "\n".join(res.text.split("\n")[-KEEP_COUNT:])
+        lines = res.text.split("\n")
+        output = "\n".join([lines[0]] + lines[-KEEP_COUNT:])
         with open(output_folder / f"{station.id}.csv", "w") as fd:
             fd.write(output)
 

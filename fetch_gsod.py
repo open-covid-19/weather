@@ -35,9 +35,7 @@ if __name__ == "__main__":
     # Get all the weather stations with data up until last month
     today = datetime.date.today()
     min_date = (today - datetime.timedelta(days=30)).strftime("%Y%m%d")
-    stations = read_csv("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv").rename(
-        columns={"LAT": "lat", "LON": "lon", "ELEV(M)": "elevation"}
-    )
+    stations = read_csv("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv")
     stations.to_csv(gsod_output / "isd-history.csv", index=False)
     stations = stations[stations.END > int(min_date)]
     stations["id"] = stations["USAF"] + stations["WBAN"].apply(lambda x: f"{x:05d}")
