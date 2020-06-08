@@ -24,17 +24,6 @@ jobs:
       run: |
         mkdir -p ./output
         python fetch_ghcn.py
-        python fetch_gsod.py
-
-    # - name: Upload to cloud storage
-    #   uses: azure/CLI@v1
-    #   env:
-    #     AZ_CONTAINER: https://opencovid.blob.core.windows.net/cache
-    #     AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
-    #   with:
-    #     azcliversion: latest
-    #     inlineScript: |
-    #       az storage blob upload-batch -d "$AZ_CONTAINER" -s ./output --account-key "$AZ_STORAGE_KEY"
 
     - name: Deploy data to server
       uses: peaceiris/actions-gh-pages@v3
