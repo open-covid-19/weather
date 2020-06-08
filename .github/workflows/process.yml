@@ -22,15 +22,21 @@ jobs:
 
     - name: Run data pipeline
       run: |
-        mkdir -p ./output/weather
-        python fetch.py ./output/weather/stations.csv
+        mkdir -p ./output
+        python fetch.py
 
-    - name: Upload to cloud storage
-      uses: azure/CLI@v1
-      env:
-        AZ_CONTAINER: https://opencovid.blob.core.windows.net/cache
-        AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
+    # - name: Upload to cloud storage
+    #   uses: azure/CLI@v1
+    #   env:
+    #     AZ_CONTAINER: https://opencovid.blob.core.windows.net/cache
+    #     AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
+    #   with:
+    #     azcliversion: latest
+    #     inlineScript: |
+    #       az storage blob upload-batch -d "$AZ_CONTAINER" -s ./output --account-key "$AZ_STORAGE_KEY"
+
+    - name: Deploy data to server
+      uses: peaceiris/actions-gh-pages@v3
       with:
-        azcliversion: latest
-        inlineScript: |
-          az storage blob upload-batch -d "$AZ_CONTAINER" -s ./output --account-key "$AZ_STORAGE_KEY"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./output
