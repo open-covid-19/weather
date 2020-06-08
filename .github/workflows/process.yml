@@ -23,7 +23,8 @@ jobs:
     - name: Run data pipeline
       run: |
         mkdir -p ./output
-        python fetch.py
+        python fetch_ghcn.py
+        python fetch_gsod.py
 
     # - name: Upload to cloud storage
     #   uses: azure/CLI@v1
