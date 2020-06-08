@@ -32,10 +32,17 @@ def process_ghcn(output_folder: Path, station: Series) -> None:
 
 if __name__ == "__main__":
 
+    ghcn_output = Path("output") / "ghcn"
+    ghcn_output.mkdir(parents=True, exist_ok=True)
+
     # Get all the weather stations with data up until 2020
+    ghcn_inventory_path = ghcn_output / "ghcnd-inventory.txt"
     stations_url = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt"
+    ghcn_inventory_data = requests.get(stations_url).content
+    with open(ghcn_inventory_path, "wb") as fd:
+        fd.write(ghcn_inventory_data)
     stations = read_csv(
-        stations_url,
+        ghcn_inventory_path,
         sep=r"\s+",
         names=("id", "latitude", "longitude", "measurement", "year_start", "year_end"),
     )
@@ -51,9 +58,7 @@ if __name__ == "__main__":
     ].reset_index()
 
     # Make sure that the process function receives output folder
-    output_folder = Path("output") / "ghcn"
-    map_func = partial(process_ghcn, output_folder)
-    output_folder.mkdir(parents=True, exist_ok=True)
+    map_func = partial(process_ghcn, ghcn_output)
 
     # We can skip the index when iterating over the records
     map_iter = (record for _, record in stations.iterrows())
